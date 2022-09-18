@@ -3,7 +3,7 @@ import { View, Text } from 'react-native';
 import { Switch } from 'react-native-paper';
 
 export default function ({ data }) {
-    const [isSwitchOn, setIsSwitchOn] = React.useState(false);
+    const [isSwitchOn, setIsSwitchOn] = React.useState(data.isAtiva);
 
     const onToggleSwitch = () => setIsSwitchOn(!isSwitchOn);
     /* startDate,

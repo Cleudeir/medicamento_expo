@@ -25,7 +25,7 @@ export default function Add({ navigation }) {
         return ((horas < 10 ? '0' + horas : horas) + ":" + (minutos < 10 ? '0' + minutos : minutos) + "h")
     }
     async function save() {
-        const startDate = Date.now()
+        const startDate = Date.now() + 60 * 1000
         const startTimeSeconds = (useTime - new Date(startDate) < 0 ?
             (24 * 60 * 60 * 1000 + (useTime - new Date(startDate))) :
             useTime - new Date(startDate)) / 1000
@@ -56,7 +56,8 @@ export default function Add({ navigation }) {
             indetifers,
             name: useName,
             interval: intervalSeconds * 1000,
-            repeat: useRepeat
+            repeat: useRepeat,
+            isAtive: true
         }
         const saved = JSON.parse(await AsyncStorage.getItem('save'))
         if (saved) {
