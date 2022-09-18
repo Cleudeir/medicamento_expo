@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
@@ -6,12 +6,28 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 import Add from './src/screen/Add';
 import Home from './src/screen/Home';
-
+import Notification from './src/components/Notification';
+  
 
 
 const Stack = createStackNavigator();
 
 export default function App() {
+
+  const [useNotification, setNotification] = useState(false);
+  useEffect(() => {
+      (async () => {
+          const { Notifications, token } = await Notification()
+          Notifications.addNotificationReceivedListener(notification => {
+              setNotification(notification);
+          });
+          Notifications.addNotificationResponseReceivedListener(response => {
+              console.log(response);
+          });
+      })()
+
+  }, [])
+
   return (
     <NavigationContainer>
       <Stack.Navigator>
