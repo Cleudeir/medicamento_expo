@@ -1,39 +1,52 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import Notification from '../components/Notification';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, Dimensions, StatusBar } from 'react-native';
 import Alarm from '../components/Alarm';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import { Button, IconButton } from 'react-native-paper';
+import showAlert from '../components/Alert';
+
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+    }),
+});
 
 export default function Home({ navigation }) {
     const [useNotification, setNotification] = useState(false);
     const [useAlarms, setAlarms] = useState(false);
+    const [useError, setError] = useState(false)
+
 
     useEffect(() => {
         navigation.addListener('focus', start);
         async function start() {
-            await Notification()
-
-            Notifications.addNotificationReceivedListener(async ({ request }) => {
-                console.log(request.identifier)
-            });
-            Notifications.addNotificationResponseReceivedListener(response => {
-                console.log(response);
-            });
-
-            const saved = JSON.parse(await AsyncStorage.getItem('save'))
-
-            // clean
-            // Notifications.cancelAllScheduledNotificationsAsync()
-            if (saved && saved.length > 0) {
-                const filter = saved.filter(data => (data.repeat - Math.ceil((Date.now() - data.startDate) / data.interval, 0)) > 0)
-                await AsyncStorage.setItem('save', JSON.stringify(filter))
-                setAlarms(saved)
+            const { status: existingStatus } = await Notifications.getPermissionsAsync();
+            let finalStatus = existingStatus;
+            if (existingStatus !== 'granted') {
+                const { status } = await Notifications.requestPermissionsAsync();
+                finalStatus = status;
             }
-            console.log('Carregado!')
+            if (finalStatus !== 'granted') {
+                alert('Failed to get push token for push notification!');
+                return;
+            }
+            console.log(existingStatus, finalStatus)
+            try {
+                const saved = JSON.parse(await AsyncStorage.getItem('save'))
+                if (saved && saved.length > 0) {
+                    const filter = saved.filter(data => (data.repeat - Math.ceil((Date.now() - data.startDate) / data.interval, 0)) > 0)
+                    await AsyncStorage.setItem('save', JSON.stringify(filter))
+                    setAlarms(saved)
+                }
+                console.log(saved.length, 'Carregado!')
+            } catch (error) {
+                console.log(error)
+                setError(JSON.stringify(error.code))
+            }
         }
-
     }, [])
 
     async function remove(data) {
@@ -52,14 +65,36 @@ export default function Home({ navigation }) {
         setAlarms(filter)
     }
 
+    async function clear() {
+        await AsyncStorage.clear()
+        await Notifications.cancelAllScheduledNotificationsAsync()
+        setAlarms(false)
+    }
+
     return (
-        <View style={styles.container}>
-            {useAlarms && useAlarms.map((data, index) => <Alarm data={data} remove={remove} key={index} />)}
-            {!useAlarms && <View style={[styles.container, { justifyContent: 'flex-start', alignItems: 'center' }]}>
-                <IconButton icon="arrow-top-right-thin" size={100} View style={ {alignSelf: 'flex-end' }}/>
-                <Text style={styles.text} >Adicione alarme </Text>
-            </View>}
-        </View>);
+        <SafeAreaView style={styles.container}>
+            <ScrollView style={styles.scrollView}>
+                <View style={styles.containerAlarm}>
+                    {useAlarms &&
+                        <View>
+                            {useAlarms.map((data, index) => <Alarm data={data} remove={remove} key={index} />)}
+                            <Button style={styles.button} icon="alarm" mode="contained" onPress={() => { showAlert('Voce excluirá todos os alarms', clear) }}>
+                                limpar
+                            </Button>
+                        </View>
+                    }
+                    {!useAlarms && <View style={[styles.containerAlarm, { justifyContent: 'flex-start', alignItems: 'center' }]}>
+                        <IconButton icon="arrow-top-right-thin" size={100} View style={{ alignSelf: 'flex-end' }} />
+                        <Text style={styles.text} >Adicione alarme </Text>
+                    </View>}
+                    {useError && <Text style={{ height: 50, color: 'red', margin: 10 }}>
+                        {useError}
+                    </Text>
+                    }
+                </View>
+            </ScrollView>
+        </SafeAreaView>
+    );
 };
 
 
@@ -67,7 +102,28 @@ const backgroundColor = "rgba(48,112,226,0.04)"
 const color = "#666"
 
 const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%', padding: 10, backgroundColor: '#fff' },
-    button: { padding: 5, margin: 20 },
+    container: {
+        flex: 1,
+
+    },
+    scrollView: {
+        marginHorizontal: 0,
+        marginVertical: 0,
+    },
+    containerAlarm: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+        padding: 10,
+        backgroundColor: '#fff',
+        minHeight: Dimensions.get('window').height - StatusBar.currentHeight
+    },
+    button: {
+        padding: 5,
+        margin: 20,
+        width: 100,
+        alignSelf: 'center'
+    },
     text: { fontSize: 30 }
 })

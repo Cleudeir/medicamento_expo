@@ -3,22 +3,10 @@ import * as Notifications from 'expo-notifications';
 import React, { useState, useEffect, useRef } from 'react';
 import { Text, View, Button, Platform } from 'react-native';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
-
-export default async function Notification() {
-  const token = await registerForPushNotificationsAsync()
-  return {Notifications,token}
-}
 
 
-
-async function registerForPushNotificationsAsync() {
+export default async function Notify() {
+ 
   let token;
   if (Device.isDevice) {
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -36,7 +24,6 @@ async function registerForPushNotificationsAsync() {
   } else {
     alert('Must use physical device for Push Notifications');
   }
-
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'default',
@@ -45,6 +32,5 @@ async function registerForPushNotificationsAsync() {
       lightColor: '#FF231F7C',
     });
   }
-
   return token;
 }

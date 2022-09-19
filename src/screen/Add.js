@@ -13,9 +13,7 @@ export default function Add({ navigation }) {
     const [useInterval, setInterval] = useState(8)
     const [useError, setError] = useState(false)
     const [startDate] = useState(Date.now())
-    useEffect(() => {
-        console.log(useRepeat)
-    }, [useRepeat])
+
     function hora() {
         const dia = useTime.getDate();
         const mes = (useTime.getMonth() + 1);
@@ -30,11 +28,11 @@ export default function Add({ navigation }) {
         if (!useName) {
             setError('Erro: Preencha o nome do Medicamento')
             return
-        }        
+        }
         const startTimeSeconds = (useTime - new Date(startDate) < 0 ?
             (24 * 60 * 60 * 1000 + (useTime - new Date(startDate))) :
             useTime - new Date(startDate)) / 1000
-       
+
         const intervalSeconds = useInterval * 60 * 60
         const times = []
         for (let i = 0; i < useRepeat; i++) {
@@ -57,7 +55,7 @@ export default function Add({ navigation }) {
                     }
                 }
                 const indetifer = await Notifications.scheduleNotificationAsync(notify)
-                indetifers.push(indetifer)               
+                indetifers.push(indetifer)
             }
         }
         const obj = {
@@ -68,14 +66,19 @@ export default function Add({ navigation }) {
             repeat: useRepeat,
             isAtive: true
         }
-        const saved = JSON.parse(await AsyncStorage.getItem('save'))
-        if (saved) {
-            await AsyncStorage.setItem('save', JSON.stringify([obj, ...saved]))
-        } else {
-            await AsyncStorage.setItem('save', JSON.stringify([obj]))
+        try {
+            const saved = JSON.parse(await AsyncStorage.getItem('save'))
+            if (saved) {
+                await AsyncStorage.setItem('save', JSON.stringify([obj, ...saved]))
+            } else {
+                await AsyncStorage.setItem('save', JSON.stringify([obj]))
+            }
+            // console.log(obj)
+            navigation.navigate('Home')
+        } catch (error) {
+            console.log(error)
         }
-        // console.log(obj)
-        navigation.navigate('Home')
+
     }
 
     return (
