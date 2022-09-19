@@ -43,8 +43,7 @@ export default function Home({ navigation }) {
                 }
                 console.log(saved.length, 'Carregado!')
             } catch (error) {
-                console.log(error)
-                setError(JSON.stringify(error.code))
+                console.log('error Home: ', error)
             }
         }
     }, [])
@@ -87,7 +86,7 @@ export default function Home({ navigation }) {
                         <IconButton icon="arrow-top-right-thin" size={100} View style={{ alignSelf: 'flex-end' }} />
                         <Text style={styles.text} >Adicione alarme </Text>
                     </View>}
-                    {useError && <Text style={{ height: 50, color: 'red', margin: 10 }}>
+                    {useError && <Text style={{ color: 'red', margin: 10 }}>
                         {useError}
                     </Text>
                     }
@@ -105,6 +104,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
 
+
     },
     scrollView: {
         marginHorizontal: 0,
@@ -114,8 +114,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        width: '100%',
-        padding: 10,
+        width: Dimensions.get('window').width,
         backgroundColor: '#fff',
         minHeight: Dimensions.get('window').height - StatusBar.currentHeight
     },

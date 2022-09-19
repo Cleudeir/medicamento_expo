@@ -14,25 +14,35 @@ export default function Add({ navigation }) {
     const [useError, setError] = useState(false)
     const [startDate] = useState(Date.now())
 
-    function hora() {
-        const dia = useTime.getDate();
-        const mes = (useTime.getMonth() + 1);
-        const ano = useTime.getFullYear();
-        const horas = useTime.getHours();
-        const minutos = useTime.getMinutes();
-        console.log("Hoje é dia " + dia + "/" + mes + " de " + ano + ". Agora são " + horas + ":" + minutos + "h");
+    function hora(data, log) {
+        const dia = data.getDate();
+        const mes = (data.getMonth() + 1);
+        const ano = data.getFullYear();
+        const horas = data.getHours();
+        const minutos = data.getMinutes();
+        if (log) {
+            console.log("Hoje é dia " + dia + "/" + mes + " de " + ano + ". Agora são " + horas + ":" + minutos + "h");
+        }
         // saída: Hoje é dia 15/7 de 2020. Agora são 14:59h.
         return ((horas < 10 ? '0' + horas : horas) + ":" + (minutos < 10 ? '0' + minutos : minutos) + "h")
     }
     async function save() {
+
+        let timeCorrection;
+        if (useTime.getTime() > Date.now()) {
+            timeCorrection = useTime.getTime()
+        } else {
+            timeCorrection = new Date(useTime);
+            timeCorrection.setDate(timeCorrection.getDate() + 1);
+            timeCorrection = timeCorrection.getTime()
+        }
+        hora(new Date(timeCorrection), true)
+        console.log(timeCorrection)
         if (!useName) {
             setError('Erro: Preencha o nome do Medicamento')
             return
         }
-        const startTimeSeconds = (useTime - new Date(startDate) < 0 ?
-            (24 * 60 * 60 * 1000 + (useTime - new Date(startDate))) :
-            useTime - new Date(startDate)) / 1000
-
+        const startTimeSeconds = (timeCorrection - Date.now()) / 1000
         const intervalSeconds = useInterval * 60 * 60
         const times = []
         for (let i = 0; i < useRepeat; i++) {
@@ -59,7 +69,7 @@ export default function Add({ navigation }) {
             }
         }
         const obj = {
-            startDate: Date.now(useTime),
+            startDate: timeCorrection,
             indetifers,
             name: useName,
             interval: intervalSeconds * 1000,
@@ -90,7 +100,7 @@ export default function Add({ navigation }) {
                         {'Horario de Inicio'}
                     </Text>
                     <Text style={styles.pickerTime}>
-                        {hora()}
+                        {hora(useTime)}
                     </Text>
                 </View>
             </TouchableNativeFeedback>
@@ -100,11 +110,12 @@ export default function Add({ navigation }) {
                 isVisible={useShow}
                 mode="time"
                 onChange={(e) => {
-                    console.log(new Date(e.nativeEvent.timestamp));
                     setShow(!useShow);
-                    setTime(new Date(e.nativeEvent.timestamp))
+                    const time = e.nativeEvent.timestamp
+                    setTime(new Date(time))
                 }}
-                value={useTime} is24Hour={true}
+                value={useTime}
+                is24Hour={true}
                 locale="pt-BR" />}
 
             <TextInput style={styles.imputText}
@@ -117,7 +128,7 @@ export default function Add({ navigation }) {
             <TextInput style={styles.imputText}
                 placeholderTextColor={color}
                 keyboardType='numeric'
-                label="Quantidade de comprimidos"
+                label="Quantidade de doses/comprimidos"
                 right={<TextInput.Icon icon="numeric" />}
                 onChangeText={(e) => { setRepeat(e) }}
                 value={String(useRepeat)}
