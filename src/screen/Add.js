@@ -1,16 +1,18 @@
 import DatePicker from '@react-native-community/datetimepicker';
 import { useState, useEffect } from 'react';
 import { View, Text, TouchableNativeFeedback, StyleSheet } from 'react-native';
-import { TextInput, Button } from 'react-native-paper';
+import { TextInput, Button, HelperText } from 'react-native-paper';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Add({ navigation }) {
     const [useTime, setTime] = useState(new Date())
     const [useShow, setShow] = useState(false)
-    const [useName, setName] = useState('test01')
+    const [useName, setName] = useState('')
     const [useRepeat, setRepeat] = useState(28)
     const [useInterval, setInterval] = useState(8)
+    const [useError, setError] = useState(false)
+    const [startDate] = useState(Date.now())
     useEffect(() => {
         console.log(useRepeat)
     }, [useRepeat])
@@ -25,34 +27,41 @@ export default function Add({ navigation }) {
         return ((horas < 10 ? '0' + horas : horas) + ":" + (minutos < 10 ? '0' + minutos : minutos) + "h")
     }
     async function save() {
-        const startDate = Date.now() + 60 * 1000
+        if (!useName) {
+            setError('Erro: Preencha o nome do Medicamento')
+            return
+        }        
         const startTimeSeconds = (useTime - new Date(startDate) < 0 ?
             (24 * 60 * 60 * 1000 + (useTime - new Date(startDate))) :
             useTime - new Date(startDate)) / 1000
-
+       
         const intervalSeconds = useInterval * 60 * 60
         const times = []
         for (let i = 0; i < useRepeat; i++) {
             times.push(startTimeSeconds + intervalSeconds * i);
         }
+        console.log('times ', times)
         const indetifers = []
         for (let i = 0; i < times.length; i++) {
-            const count = useRepeat - i
-            const notify = {
-                content: {
-                    title: useName,
-                    body: `É hora de tomar o Remédio, faltam somente ${count} unidades`,
-                    data: { data: 'goes here' },
-                    sound: true,
-                },
-                trigger: {
-                    seconds: times[i]
+            const count = useRepeat - i - 1
+            for (let j = 0; j < 3; j++) {
+                const notify = {
+                    content: {
+                        title: useName,
+                        body: `É hora de tomar o Remédio, faltam somente ${count} unidades`,
+                        data: { data: 'goes here' },
+                        sound: true,
+                    },
+                    trigger: {
+                        seconds: times[i] + 20 * j
+                    }
                 }
+                const indetifer = await Notifications.scheduleNotificationAsync(notify)
+                indetifers.push(indetifer)               
             }
-            indetifers.push(await Notifications.scheduleNotificationAsync(notify))
         }
         const obj = {
-            startDate,
+            startDate: Date.now(useTime),
             indetifers,
             name: useName,
             interval: intervalSeconds * 1000,
@@ -65,7 +74,7 @@ export default function Add({ navigation }) {
         } else {
             await AsyncStorage.setItem('save', JSON.stringify([obj]))
         }
-        console.log(obj)
+        // console.log(obj)
         navigation.navigate('Home')
     }
 
@@ -118,6 +127,10 @@ export default function Add({ navigation }) {
                 onChangeText={(e) => { setInterval(e) }}
                 value={String(useInterval)}
             />
+            {useError && <Text style={{ height: 50, color: 'red', margin: 10 }}>
+                {useError}
+            </Text>
+            }
             <Button style={styles.button} icon="alarm" mode="contained" onPress={save}>
                 Salvar
             </Button>
@@ -125,7 +138,7 @@ export default function Add({ navigation }) {
     )
 }
 
-const backgroundColor = "rgba(48,112,226,0.05)"
+const backgroundColor = "rgba(48,112,226,0.04)"
 const color = "#666"
 
 const styles = StyleSheet.create({
