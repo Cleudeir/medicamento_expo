@@ -8,6 +8,16 @@
     ],
     "android": {
       "package": "com.cleudeir.medicamento_expo"
-    }
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {         
+          "sounds": [
+            "./src/assets/notification.wav"       
+          ]
+        }
+      ]
+    ]
   }
 }

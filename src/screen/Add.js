@@ -6,7 +6,7 @@ import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Add({ navigation }) {
-    const [useTime, setTime] = useState(new Date())
+    const [useTime, setTime] = useState(new Date(Date.now() + 30 * 1000))
     const [useShow, setShow] = useState(false)
     const [useName, setName] = useState('')
     const [useRepeat, setRepeat] = useState(28)
@@ -39,8 +39,8 @@ export default function Add({ navigation }) {
         hora(new Date(timeCorrection), true)
         console.log(timeCorrection)
         if (!useName) {
-            setError('Erro: Preencha o nome do Medicamento')
-            return
+            // setError('Erro: Preencha o nome do Medicamento')
+            // return
         }
         const startTimeSeconds = (timeCorrection - Date.now()) / 1000
         const intervalSeconds = useInterval * 60 * 60
@@ -59,6 +59,9 @@ export default function Add({ navigation }) {
                         body: `É hora de tomar o Remédio, faltam somente ${count} unidades`,
                         data: { data: 'goes here' },
                         sound: true,
+                        attachments: [{
+                            url: 'https://cdn.icon-icons.com/icons2/1011/PNG/512/Google_Chrome_icon-icons.com_75711.png'
+                        }]
                     },
                     trigger: {
                         seconds: times[i] + 20 * j

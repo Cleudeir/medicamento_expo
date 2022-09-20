@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, Dimensions, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, Dimensions, StatusBar, Image } from 'react-native';
 import Alarm from '../components/Alarm';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
@@ -74,6 +74,10 @@ export default function Home({ navigation }) {
         <SafeAreaView style={styles.container}>
             <ScrollView style={styles.scrollView}>
                 <View style={styles.containerAlarm}>
+                    <Image style={styles.logo}
+                        source={{
+                            uri: 'https://images-platform.99static.com/hlU1zl-N6WHdvixNeZHU7oRXiXY=/96x96:864x864/500x500/top/smart/99designs-contests-attachments/110/110332/attachment_110332211',
+                        }} />
                     {useAlarms &&
                         <View>
                             {useAlarms.map((data, index) => <Alarm data={data} remove={remove} key={index} />)}
@@ -121,8 +125,13 @@ const styles = StyleSheet.create({
     button: {
         padding: 5,
         margin: 20,
-        width: 100,
+        width: 200,
         alignSelf: 'center'
     },
-    text: { fontSize: 30 }
+    text: { fontSize: 30 },
+    logo: {
+        width: '100%',
+        height: 90,
+        resizeMode: 'cover'
+    },
 })
